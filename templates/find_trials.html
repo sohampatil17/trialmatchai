@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TrialMatch.ai - Clinical Trial Matcher for Underserved Communities</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+    <style>
+        .eligibility-icon {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            font-size: 3em;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto p-4">
+        <h1 class="text-4xl font-bold mb-4 text-center text-purple-800">TrialMatch.ai</h1>
+        
+        <form method="POST" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+            <h2 class="text-2xl font-bold mb-4">Find Matching Clinical Trials</h2> 
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="age">
+                    Age <span class="text-red-500">*</span>
+                </label>
+                <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="age" name="age" type="number" placeholder="Age" required>
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="gender">
+                    Gender <span class="text-red-500">*</span>
+                </label>
+                <select class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="gender" name="gender" required>
+                    <option value="">Select Gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="race_ethnicity">
+                    Race/Ethnicity <span class="text-red-500">*</span>
+                </label>
+                <select class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="race_ethnicity" name="race_ethnicity" required>
+                    <option value="">Select Race/Ethnicity</option>
+                    <option value="African American">African American</option>
+                    <option value="Hispanic/Latino">Hispanic/Latino</option>
+                    <option value="White">White</option>
+                    <option value="Asian">Asian</option>
+                    <option value="Native American">Native American</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="location">
+                    Location <span class="text-red-500">*</span>
+                </label>
+                <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="location" name="location" type="text" placeholder="City, State" required>
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="disease">
+                    Disease <span class="text-red-500">*</span>
+                </label>
+                <select class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="disease" name="disease" required>
+                    <option value="">Select Disease</option>
+                    {% for disease in diseases %}
+                    <option value="{{ disease }}">{{ disease }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-6">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="additional_info">
+                    Additional Information
+                </label>
+                <textarea class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="additional_info" name="additional_info" placeholder="Any additional health information..."></textarea>
+            </div>
+            <div class="flex items-center justify-center">
+                <button class="bg-purple-500 hover:bg-purple-700 text-white font-bold py-4 px-8 rounded-full text-xl focus:outline-none focus:shadow-outline" type="submit">
+                    Find Matching Trials
+                </button>
+            </div>
+        </form>
+
+        {% if disparity_info %}
+            <div class="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 mb-4" role="alert">
+                <p class="font-bold">Health Disparity Information</p>
+                <p>{{ disparity_info }}</p>
+            </div>
+        {% endif %}
+
+        {% if eligible_trials or ineligible_trials %}
+            <h2 class="text-2xl font-bold mb-4">Matching Trials:</h2>
+            
+            {% if eligible_trials %}
+                <h3 class="text-xl font-bold mb-2 text-green-600">Eligible Trials</h3>
+                {% for trial in eligible_trials %}
+                    <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4 relative">
+                        <span class="eligibility-icon text-green-500"><i class="fas fa-check-circle"></i></span>
+                        <h4 class="text-lg font-bold mb-2">
+                            {{ trial.BriefTitle }}
+                            <a href="https://clinicaltrials.gov/ct2/show/{{ trial.NCTId }}" target="_blank" class="ml-2 text-blue-500 hover:text-blue-700">
+                                <i class="fas fa-external-link-alt"></i>
+                            </a>
+                        </h4>
+                        <p><strong>NCT ID:</strong> {{ trial.NCTId }}</p>
+                        <p><strong>Phase:</strong> {{ trial.Phase }}</p>
+                        <p><strong>Lead Sponsor:</strong> {{ trial.LeadSponsor }}</p>
+                        <p><strong>Explanation:</strong> {{ trial.Explanation }}</p>
+                        
+                        <details class="mt-4">
+                            <summary class="cursor-pointer text-blue-500 hover:text-blue-700">How to Enroll</summary>
+                            <ul class="list-disc pl-5 mt-2">
+                                {% for step in trial.EnrollmentSteps %}
+                                    <li>{{ step }}</li>
+                                {% endfor %}
+                            </ul>
+                        </details>
+                        
+                        <a href="https://clinicaltrials.gov/ct2/show/{{ trial.NCTId }}#contacts" target="_blank" class="mt-4 inline-block bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                            Contact for Enrollment
+                        </a>
+                    </div>
+                {% endfor %}
+            {% endif %}
+            
+            {% if ineligible_trials %}
+                <h3 class="text-xl font-bold mb-2 text-red-600">Ineligible Trials</h3>
+                {% for trial in ineligible_trials %}
+                    <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4 relative">
+                        <span class="eligibility-icon text-red-500"><i class="fas fa-times-circle"></i></span>
+                        <h4 class="text-lg font-bold mb-2">
+                            {{ trial.BriefTitle }}
+                            <a href="https://clinicaltrials.gov/ct2/show/{{ trial.NCTId }}" target="_blank" class="ml-2 text-blue-500 hover:text-blue-700">
+                                <i class="fas fa-external-link-alt"></i>
+                            </a>
+                        </h4>
+                        <p><strong>NCT ID:</strong> {{ trial.NCTId }}</p>
+                        <p><strong>Phase:</strong> {{ trial.Phase }}</p>
+                        <p><strong>Lead Sponsor:</strong> {{ trial.LeadSponsor }}</p>
+                        <p><strong>Explanation:</strong> {{ trial.Explanation }}</p>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endif %}
+    </div>
+</body>
+</html>

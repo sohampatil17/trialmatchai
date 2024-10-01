@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TrialMatch.ai - Health Disparities in Underserved Communities</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto p-4">
+        <h1 class="text-4xl font-bold mb-4 text-center text-purple-800">TrialMatch.ai</h1>
+        
+        <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-8">
+            <p class="mb-4">
+                Underserved communities, particularly communities of color, face significant health disparities.
+                These disparities are reflected in higher rates of certain diseases and poorer health outcomes.
+                Explore the data below to learn more about these disparities.
+            </p>
+            
+            <div class="mb-4">
+                <label for="diseaseSelect" class="block text-gray-700 text-sm font-bold mb-2">Select a disease to view specific data:</label>
+                <select id="diseaseSelect" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    <option value="sickleCell">Sickle Cell Disease</option>
+                    <option value="diabetes">Type 2 Diabetes</option>
+                    <option value="hypertension">Hypertension</option>
+                    <option value="breastCancer">Breast Cancer</option>
+                    <option value="prostateCancer">Prostate Cancer</option>
+                    <option value="colorectalCancer">Colorectal Cancer</option>
+                    <option value="asthma">Asthma</option>
+                    <option value="obesity">Obesity</option>
+                    <option value="hiv">HIV/AIDS</option>
+                </select>
+            </div>
+            
+            <div class="flex flex-wrap justify-center">
+                <div class="w-full md:w-1/2 p-2">
+                    <div class="bg-white p-4 rounded-lg shadow">
+                        <h3 id="prevalenceTitle" class="text-xl font-bold mb-2">Disease Prevalence by Race/Ethnicity</h3>
+                        <div style="width: 500px; height: 500px;">
+                            <canvas id="prevalenceChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="w-full md:w-1/2 p-2">
+                    <div class="bg-white p-4 rounded-lg shadow">
+                        <h3 class="text-xl font-bold mb-2">Clinical Trial Participation by Race/Ethnicity</h3>
+                        <div style="width: 500px; height: 500px;">
+                            <canvas id="participationChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-8">
+                <h3 class="text-xl font-bold mb-2">Key Facts</h3>
+                <ul id="keyFacts" class="list-disc pl-5">
+                    <!-- Key facts will be dynamically populated here -->
+                </ul>
+            </div>
+            
+            <div class="mt-4 text-sm text-gray-600">
+                <p>Sources: CDC, NIH, American Cancer Society, American Diabetes Association, American Heart Association, 2021-2023 data</p>
+            </div>
+        </div>
+        
+        <div class="text-center">
+            <a href="{{ url_for('find_trials') }}" class="bg-purple-500 hover:bg-purple-700 text-white font-bold py-4 px-8 rounded-full text-xl focus:outline-none focus:shadow-outline inline-block">
+                Find Clinical Trials
+            </a>
+        </div>
+    </div>
+
+    <script>
+        const diseaseData = {
+            sickleCell: {
+                prevalence: {
+                    labels: ['African American', 'Hispanic', 'White', 'Asian', 'Other'],
+                    data: [0.3, 0.1, 0.02, 0.01, 0.05]
+                },
+                participation: [65, 20, 10, 3, 2],
+                facts: [
+                    "Sickle cell disease occurs in about 1 out of every 365 African American births.",
+                    "About 1 in 13 African American babies is born with sickle cell trait.",
+                    "Sickle cell disease occurs in about 1 out of every 16,300 Hispanic-American births."
+                ],
+                yAxisLabel: 'Prevalence (%)'
+            },
+            diabetes: {
+                prevalence: {
+                    labels: ['African American', 'Hispanic', 'White', 'Asian', 'Native American'],
+                    data: [11.7, 12.5, 7.5, 9.2, 14.7]
+                },
+                participation: [11, 18, 67, 6, 3],
+                facts: [
+                    "Native Americans have the highest prevalence of diabetes among all US racial and ethnic groups at 14.7%.",
+                    "Hispanic adults have a 12.5% prevalence of diagnosed diabetes, compared to 7.5% of non-Hispanic whites.",
+                    "Asian Americans have a 9.2% prevalence of diagnosed diabetes, but this varies significantly among different Asian subgroups."
+                ],
+                yAxisLabel: 'Prevalence (%)'
+            },
+            hypertension: {
+                prevalence: {
+                    labels: ['African American', 'White', 'Hispanic', 'Asian', 'Native American'],
+                    data: [54.0, 46.0, 36.0, 39.0, 46.0]
+                },
+                participation: [15, 70, 10, 3, 2],
+                facts: [
+                    "54% of African American adults have hypertension, the highest rate among all racial/ethnic groups in the US.",
+                    "Both White and Native American adults have a hypertension prevalence of 46%.",
+                    "Hispanic adults have the lowest prevalence of hypertension at 36%, but this can vary among Hispanic subgroups."
+                ],
+                yAxisLabel: 'Prevalence (%)'
+            },
+            breastCancer: {
+                prevalence: {
+                    labels: ['African American', 'White', 'Hispanic', 'Asian', 'Native American'],
+                    data: [126.7, 130.8, 103.7, 102.9, 79.5]
+                },
+                participation: [6, 80, 5, 7, 2],
+                facts: [
+                    "White women have the highest incidence rate of breast cancer at 130.8 per 100,000 women.",
+                    "African American women have the second-highest incidence rate at 126.7 per 100,000, but the highest mortality rate.",
+                    "Native American women have the lowest incidence rate at 79.5 per 100,000 women."
+                ],
+                yAxisLabel: 'Incidence per 100,000'
+            },
+            prostateCancer: {
+                prevalence: {
+                    labels: ['African American', 'White', 'Hispanic', 'Asian', 'Native American'],
+                    data: [178.3, 105.7, 91.1, 55.3, 57.9]
+                },
+                participation: [9, 81, 6, 3, 1],
+                facts: [
+                    "African American men have the highest prostate cancer incidence rate at 178.3 per 100,000 men.",
+                    "Asian/Pacific Islander men have the lowest incidence rate at 55.3 per 100,000 men.",
+                    "African American men are more than twice as likely to die of prostate cancer as white men."
+                ],
+                yAxisLabel: 'Incidence per 100,000'
+            },
+            colorectalCancer: {
+                prevalence: {
+                    labels: ['African American', 'White', 'Hispanic', 'Asian', 'Native American'],
+                    data: [45.7, 38.6, 34.1, 31.8, 39.1]
+                },
+                participation: [8, 82, 5, 4, 1],
+                facts: [
+                    "African Americans have the highest colorectal cancer incidence rate at 45.7 per 100,000 population.",
+                    "Asian Americans have the lowest incidence rate at 31.8 per 100,000 population.",
+                    "Native Americans have the second-highest incidence rate at 39.1 per 100,000 population."
+                ],
+                yAxisLabel: 'Incidence per 100,000'
+            },
+            asthma: {
+                prevalence: {
+                    labels: ['African American', 'White', 'Hispanic', 'Asian', 'Native American'],
+                    data: [10.6, 8.0, 6.5, 4.5, 9.5]
+                },
+                participation: [12, 75, 8, 3, 2],
+                facts: [
+                    "African American adults have the highest asthma prevalence at 10.6%.",
+                    "Asian adults have the lowest asthma prevalence at 4.5%.",
+                    "Asian adults have the lowest asthma prevalence at 4.5%.",
+                    "Native American adults have the second-highest prevalence at 9.5%."
+                ],
+                yAxisLabel: 'Prevalence (%)'
+            },
+            obesity: {
+                prevalence: {
+                    labels: ['African American', 'White', 'Hispanic', 'Asian', 'Native American'],
+                    data: [49.6, 42.2, 44.8, 17.4, 48.1]
+                },
+                participation: [10, 78, 7, 3, 2],
+                facts: [
+                    "African Americans have the highest prevalence of obesity at 49.6%.",
+                    "Asian Americans have the lowest prevalence of obesity at 17.4%.",
+                    "Native Americans have the second-highest prevalence at 48.1%."
+                ],
+                yAxisLabel: 'Prevalence (%)'
+            },
+            hiv: {
+                prevalence: {
+                    labels: ['African American', 'Hispanic', 'White', 'Asian', 'Native American'],
+                    data: [42.1, 21.7, 5.2, 5.4, 9.3]
+                },
+                participation: [31, 24, 40, 3, 2],
+                facts: [
+                    "African Americans have the highest rate of new HIV diagnoses at 42.1 per 100,000 population.",
+                    "Hispanic/Latino individuals have the second-highest rate at 21.7 per 100,000 population.",
+                    "Asians have the lowest rate of new HIV diagnoses at 5.4 per 100,000 population."
+                ],
+                yAxisLabel: 'New Diagnoses per 100,000'
+            }
+        };
+
+        const colorScheme = {
+            'African American': '#FF6384',
+            'Hispanic': '#FFCE56',
+            'White': '#36A2EB',
+            'Asian': '#4BC0C0',
+            'Native American': '#9966FF',
+            'Other': '#C9CBCF'
+        };
+
+        let prevalenceChart, participationChart;
+
+        function updateCharts(disease) {
+            const data = diseaseData[disease];
+
+            // Update prevalence chart
+            prevalenceChart.data.labels = data.prevalence.labels;
+            prevalenceChart.data.datasets[0].data = data.prevalence.data;
+            prevalenceChart.data.datasets[0].backgroundColor = data.prevalence.labels.map(label => colorScheme[label]);
+            prevalenceChart.options.scales.y.title.text = data.yAxisLabel;
+            prevalenceChart.options.plugins.title.text = `${disease.charAt(0).toUpperCase() + disease.slice(1)} ${data.yAxisLabel} by Race/Ethnicity`;
+            prevalenceChart.update();
+
+            // Update participation chart
+            participationChart.data.labels = data.prevalence.labels;
+            participationChart.data.datasets[0].data = data.participation;
+            participationChart.data.datasets[0].backgroundColor = data.prevalence.labels.map(label => colorScheme[label]);
+            participationChart.update();
+
+            // Update key facts
+            const keyFactsElement = document.getElementById('keyFacts');
+            keyFactsElement.innerHTML = data.facts.map(fact => `<li>${fact}</li>`).join('');
+
+            // Update prevalence chart title
+            document.getElementById('prevalenceTitle').textContent = `${disease.charAt(0).toUpperCase() + disease.slice(1)} ${data.yAxisLabel} by Race/Ethnicity`;
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const ctx1 = document.getElementById('prevalenceChart').getContext('2d');
+            const ctx2 = document.getElementById('participationChart').getContext('2d');
+
+            prevalenceChart = new Chart(ctx1, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Prevalence',
+                        data: [],
+                        backgroundColor: []
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Prevalence (%)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Disease Prevalence by Race/Ethnicity'
+                        }
+                    }
+                }
+            });
+
+            participationChart = new Chart(ctx2, {
+                type: 'pie',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        data: [],
+                        backgroundColor: []
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Clinical Trial Participation (%)'
+                        }
+                    }
+                }
+            });
+
+            const diseaseSelect = document.getElementById('diseaseSelect');
+            diseaseSelect.addEventListener('change', function() {
+                updateCharts(this.value);
+            });
+
+            // Initialize with the first disease
+            updateCharts('sickleCell');
+        });
+    </script>
+</body>
+</html>
