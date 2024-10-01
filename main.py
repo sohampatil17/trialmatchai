@@ -21,7 +21,7 @@ def get_clinical_trials(search_terms):
     params = {
         'query.term': search_terms,
         'fields': 'NCTId,BriefTitle,Phase,EligibilityCriteria,Condition,LocationFacility,LocationCity,LocationState,StartDate,CompletionDate,LeadSponsorName',
-        'pageSize': 30
+        'pageSize': 10
     }
 
     try:
